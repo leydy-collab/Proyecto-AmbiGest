@@ -1,105 +1,4 @@
-// import React from 'react';
-// import * as FiIcons from 'react-icons/fi';
-// import * as BiIcons from 'react-icons/bi';
-// import { CeldaDia } from '../components/BloqueHorario';
-
-// function Agenda({ rol }) {
-//   // Simulación de datos (Contiene 3 jornadas para validar que el límite de 2 funcione perfectamente)
-//   const horariosEjemplo = [
-//     { ficha: '3237822', hora: '6:00 AM - 12:00 PM', color: 'rojo' },
-//     { ficha: '2918212', hora: '12:00 PM - 6:00 PM', color: 'amarillo' },
-//     { ficha: '3121031', hora: '6:30 PM - 9:30 PM', color: 'verde' }
-//   ];
-
-//   const diasDelMes = Array.from({ length: 31 }, (_, i) => i + 1);
-  
-//   // Días de relleno
-//   const diasPreviosRelleno = [24, 25, 26, 27, 28]; // Febrero
-//   const diasPostRelleno = [1, 2, 3, 4, 5]; // Abril
-
-//   return (
-//     <div className="w-full flex flex-col gap-6 animate-fadeIn">
-      
-//       {/* acciones superiores */}
-//       <div className="w-full flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-xs border border-gray-100">
-        
-//         {/* buscador */}
-//         <div className="relative w-full md:w-90">
-//           <FiIcons.FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
-//           <input 
-//             type="text" 
-//             placeholder="Buscar ambiente..." 
-//             className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-hidden focus:border-verde-oscuro focus:bg-white transition-all"
-//           />
-//           <FiIcons.FiSliders className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-verde-oscuro cursor-pointer" />
-//         </div>
-
-//         {/* Título del mes o ambiente */}
-//         {rol === 'administrador' ? (
-//         <h2 className="text-xl font-bold text-green-700 tracking-wide uppercase m-0 text-center">
-//           Ambiente 301
-//         </h2>
-//         ):("")}
-
-//         {/* rol admin: botón de agendar ambiente */}
-//         {rol === 'administrador' ? (
-//           <button className="flex items-center gap-2 bg-verde-oscuro text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-xs hover:bg-[#247338] transition-all cursor-pointer">
-//             <BiIcons.BiPlusCircle className="text-lg" />
-//             <span>Agendar ambiente</span>
-//           </button>
-//         ) : (
-//           // rol instru: Badge estático e informativo
-//           <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold select-none">
-//             <FiIcons.FiCalendar className="text-sm text-verde-oscuro" />
-//             <span>Ficha: 3237822</span>
-//           </div>
-//         )}
-//       </div>
-
-//       {/* contenedor calendario */}
-//       <div className="w-full bg-white p-4 rounded-xl shadow-xs border border-gray-100">
-        
-//         <h2 className="text-xl font-bold text-gray-700 tracking-wide uppercase mb-5 text-center">Marzo 2026</h2>
-        
-//         {/* columnas*/}
-//         <div className="grid grid-cols-7 gap-1 text-center font-bold text-xs text-gray-500 uppercase tracking-wider mb-2">
-//           <div>Lun</div>
-//           <div>Mar</div>
-//           <div>Mié</div>
-//           <div>Jue</div>
-//           <div>Vie</div>
-//           <div>Sáb</div>
-//           <div>Dom</div>
-//         </div>
-
-//         {/* celdas */}
-//         <div className="grid grid-cols-7 gap-1 bg-gray-200 p-0.5 rounded-md">
-          
-//           {/* Febrero */}
-//           {diasPreviosRelleno.map(dia => (
-//             <CeldaDia key={`prev-${dia}`} numero={dia} esMesActual={false} />
-//           ))}
-
-//           {/* Marzo */}
-//           {diasDelMes.map(dia => (
-//             <CeldaDia key={dia} numero={dia} horarios={horariosEjemplo} />
-//           ))}
-
-//           {/* Abril */}
-//           {diasPostRelleno.map(dia => (
-//             <CeldaDia key={`post-${dia}`} numero={dia} esMesActual={false} />
-//           ))}
-
-//         </div>
-//       </div>
-
-//     </div>
-//   );
-// }
-
-// export default Agenda;
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import * as FiIcons from 'react-icons/fi';
 import * as BiIcons from 'react-icons/bi';
 import * as MdIcons from 'react-icons/md';
@@ -108,6 +7,10 @@ import ModalAgendarAmbiente from '../components/ModalAgendarAmbiente';
 import ErrorCarga from '../components/ErrorCarga';
 import { agendaApi, ambientesApi } from '../services/api';
 
+// Fecha local en texto 'AAAA-MM-DD' (sin desfase de zona horaria)
+const textoFecha = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 function Agenda({ rol = 'administrador', usuario }) {
   // Estado para el filtro: para 'administrador' es el Ambiente, para 'instructor' es la Ficha
   // Administrador: id del ambiente | Instructor: número de ficha (se llena al cargar los datos)
@@ -115,6 +18,7 @@ function Agenda({ rol = 'administrador', usuario }) {
 
   const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [agendaEnEdicion, setAgendaEnEdicion] = useState(null); // null = agendar una nueva
 
   const [anoActual, setAnoActual] = useState(new Date().getFullYear());
   const [mesActual, setMesActual] = useState(new Date().getMonth()); // 0 = Enero ... 11 = Diciembre
@@ -124,26 +28,59 @@ function Agenda({ rol = 'administrador', usuario }) {
   const [ambientes, setAmbientes] = useState([]);
   const [errorCarga, setErrorCarga] = useState('');
 
+  const [cargado, setCargado] = useState(false); // ya terminó la primera carga desde la base de datos
+  const yaPosicionado = useRef(false);
+
+  // Al entrar por primera vez, elige una agenda para mostrar y lleva el calendario a su mes:
+  // la que está vigente hoy; si no hay, la próxima; y si tampoco, la más reciente.
+  // Así las agendas guardadas se ven sin tener que buscar el ambiente y el mes a mano.
+  const posicionarEnAgendaRelevante = (agendas) => {
+    if (yaPosicionado.current || agendas.length === 0) return null;
+    yaPosicionado.current = true;
+    const hoy = textoFecha(new Date());
+    const vigente = agendas.find((a) => a.fechaInicio <= hoy && hoy <= a.fechaFin);
+    const proxima = agendas
+      .filter((a) => a.fechaInicio > hoy)
+      .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio))[0];
+    const ultima = [...agendas].sort((a, b) => b.fechaFin.localeCompare(a.fechaFin))[0];
+    const elegida = vigente ?? proxima ?? ultima;
+    const referencia = vigente ? hoy : proxima ? proxima.fechaInicio : ultima.fechaFin;
+    const [ano, mes] = referencia.split('-').map(Number);
+    setAnoActual(ano);
+    setMesActual(mes - 1);
+    return elegida;
+  };
+
   const cargar = async () => {
     try {
       if (rol === 'administrador') {
         const [asignaciones, ambs] = await Promise.all([agendaApi.listar(), ambientesApi.listar()]);
         setListaAsignaciones(asignaciones);
         setAmbientes(ambs);
-        setFiltroSeleccionado((actual) => actual || (ambs[0]?.id ?? ''));
+        const elegida = posicionarEnAgendaRelevante(asignaciones);
+        const ambDeLaAgenda = elegida && ambs.find((a) => parseInt(a.id, 10) === parseInt(elegida.ambienteId, 10));
+        setFiltroSeleccionado((actual) => actual || ambDeLaAgenda?.id || (ambs[0]?.id ?? ''));
       } else {
         // El instructor solo ve sus propias agendas
         const asignaciones = await agendaApi.listar(usuario?.id);
         setListaAsignaciones(asignaciones);
-        setFiltroSeleccionado((actual) => actual || (asignaciones[0]?.ficha ?? ''));
+        const elegida = posicionarEnAgendaRelevante(asignaciones);
+        setFiltroSeleccionado((actual) => actual || elegida?.ficha || (asignaciones[0]?.ficha ?? ''));
       }
       setErrorCarga('');
     } catch (e) {
       setErrorCarga(e.message);
     }
+    setCargado(true);
   };
 
   useEffect(() => { cargar(); }, [rol, usuario?.id]);
+
+  // ¿Esta agenda corresponde al ambiente (administrador) o a la ficha (instructor) elegidos?
+  const coincideConFiltro = (asignacion) =>
+    rol === 'administrador'
+      ? parseInt(asignacion.ambienteId, 10) === parseInt(filtroSeleccionado, 10)
+      : asignacion.ficha.trim() === String(filtroSeleccionado).trim();
 
   // 🛠️ MOTOR DE FILTRADO SEGÚN EL ROL
   const obtenerHorariosParaFecha = (fechaTexto) => {
@@ -152,9 +89,7 @@ function Agenda({ rol = 'administrador', usuario }) {
     listaAsignaciones.forEach(asignacion => {
       // Si es Admin, filtra por coincidencia de AMBIENTE.
       // Si es Instructor, filtra por coincidencia de FICHA.
-      const coincideFiltro = rol === 'administrador'
-        ? parseInt(asignacion.ambienteId, 10) === parseInt(filtroSeleccionado, 10)
-        : asignacion.ficha.trim() === String(filtroSeleccionado).trim();
+      const coincideFiltro = coincideConFiltro(asignacion);
 
       const enRango = fechaTexto >= asignacion.fechaInicio && fechaTexto <= asignacion.fechaFin;
 
@@ -167,7 +102,8 @@ function Agenda({ rol = 'administrador', usuario }) {
       }
     });
 
-    return horariosDelDia;
+    // Las tarjetas del día se ordenan por hora de inicio (mañana, tarde, noche)
+    return horariosDelDia.sort((a, b) => String(a.horaInicio).localeCompare(String(b.horaInicio)));
   };
 
   // Generador de grilla del calendario
@@ -214,6 +150,21 @@ function Agenda({ rol = 'administrador', usuario }) {
   const nombreMes = new Date(anoActual, mesActual).toLocaleString('es-CO', { month: 'long' });
   const matrizCeldas = obtenerDiasCalendario();
 
+  // Para avisar cuando el mes que se está viendo no tiene agendas pero el ambiente sí tiene en otros meses
+  const agendasDelFiltro = listaAsignaciones.filter(coincideConFiltro);
+  const hayAgendasEnElMes = matrizCeldas.some((c) => c.esMesActual && c.horarios.length > 0);
+
+  const irAAgendaCercana = () => {
+    const inicioMes = `${anoActual}-${String(mesActual + 1).padStart(2, '0')}-01`;
+    const ordenadas = [...agendasDelFiltro].sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
+    const proxima = ordenadas.find((a) => a.fechaInicio >= inicioMes);
+    const referencia = proxima ? proxima.fechaInicio : ordenadas[ordenadas.length - 1].fechaFin;
+    const [ano, mes] = referencia.split('-').map(Number);
+    setAnoActual(ano);
+    setMesActual(mes - 1);
+    setDetalleSeleccionado(null);
+  };
+
   const cambiarMes = (direccion) => {
     if (direccion === 'atras') {
       if (mesActual === 0) { setMesActual(11); setAnoActual(prev => prev - 1); }
@@ -228,14 +179,48 @@ function Agenda({ rol = 'administrador', usuario }) {
   // Guarda en la BD (usa tu procedimiento sp_registrar_agenda). Si falla, devuelve el mensaje al modal.
   const guardarNuevaAsignacion = async (datos) => {
     try {
-      await agendaApi.crear(datos);
+      // Si hay una agenda en edición se actualiza; si no, se crea una nueva
+      if (agendaEnEdicion) await agendaApi.editar(agendaEnEdicion.id, datos);
+      else await agendaApi.crear(datos);
       await cargar();
       setModalAbierto(false);
+      setAgendaEnEdicion(null);
+      // Lleva el calendario al mes donde empieza la agenda nueva, para que se vea de inmediato
+      const [anoNuevo, mesNuevo] = datos.fechaInicio.split('-').map(Number);
+      setAnoActual(anoNuevo);
+      setMesActual(mesNuevo - 1);
+      setDetalleSeleccionado(null);
       if (rol === 'administrador') {
         setFiltroSeleccionado(datos.ambienteId);
       }
     } catch (e) {
       return e.message;
+    }
+  };
+
+  // '2026-11-05' -> '05/11/2026'
+  const formatoFecha = (iso) => (iso ? iso.split('-').reverse().join('/') : '');
+
+  // Abre el formulario con los datos de la agenda seleccionada
+  const editarAgenda = () => {
+    setAgendaEnEdicion(detalleSeleccionado);
+    setModalAbierto(true);
+  };
+
+  // Elimina la agenda seleccionada (afecta TODO su rango de fechas, no solo el día que se tocó)
+  const eliminarAgenda = async () => {
+    const a = detalleSeleccionado;
+    const confirmar = window.confirm(
+      `¿Eliminar la agenda de la ficha ${a.ficha} en ${a.ambiente} (${a.jornada})?\n` +
+      `Se eliminará del ${formatoFecha(a.fechaInicio)} al ${formatoFecha(a.fechaFin)}, no solo de este día.`
+    );
+    if (!confirmar) return;
+    try {
+      await agendaApi.eliminar(a.id);
+      setDetalleSeleccionado(null);
+      await cargar();
+    } catch (e) {
+      setErrorCarga(e.message);
     }
   };
 
@@ -283,7 +268,7 @@ function Agenda({ rol = 'administrador', usuario }) {
                 {filtroSeleccionado || 'Seleccione ambiente'}
               </h2> */}
               <button 
-                onClick={() => setModalAbierto(true)}
+                onClick={() => { setAgendaEnEdicion(null); setModalAbierto(true); }}
                 className="flex items-center gap-2 bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-xs hover:bg-green-800 transition-all cursor-pointer"
               >
                 <BiIcons.BiPlusCircle className="text-lg" />
@@ -297,6 +282,27 @@ function Agenda({ rol = 'administrador', usuario }) {
           )}
 
         </div>
+
+        {/* Aviso cuando el mes que se ve no tiene agendas */}
+        {cargado && !errorCarga && filtroSeleccionado !== '' && !hayAgendasEnElMes && (
+          <div className="w-full flex flex-wrap items-center justify-between gap-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs px-4 py-2.5 rounded-lg">
+            {agendasDelFiltro.length === 0 ? (
+              <span>
+                {rol === 'administrador' ? 'Este ambiente todavía no tiene agendas.' : 'Esta ficha todavía no tiene agendas.'}
+              </span>
+            ) : (
+              <>
+                <span>No hay agendas en este mes. Hay {agendasDelFiltro.length} guardada(s) en otros meses.</span>
+                <button
+                  onClick={irAAgendaCercana}
+                  className="bg-amber-200 hover:bg-amber-300 text-amber-900 font-semibold px-3 py-1 rounded-md transition-all cursor-pointer"
+                >
+                  Ir a la más cercana
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Contenedor del Calendario */}
         <div className="w-full bg-white p-4 rounded-xl shadow-xs border border-gray-100">
@@ -351,6 +357,7 @@ function Agenda({ rol = 'administrador', usuario }) {
               <div><span className="font-semibold text-gray-500">Horario:</span> {detalleSeleccionado.hora}</div>
               <div><span className="font-semibold text-gray-500">Ficha:</span> {detalleSeleccionado.ficha}</div>
               <div><span className="font-semibold text-gray-500">Instructor:</span> {detalleSeleccionado.instructor}</div>
+              <div><span className="font-semibold text-gray-500">Vigencia:</span> {formatoFecha(detalleSeleccionado.fechaInicio)} al {formatoFecha(detalleSeleccionado.fechaFin)}</div>
             </div>
           </div>
 
@@ -368,7 +375,25 @@ function Agenda({ rol = 'administrador', usuario }) {
             </div>
           </div>
 
-          <div className="mt-auto text-[10px] text-gray-400 font-light text-center italic border-t border-gray-100 pt-2">
+          {/* Solo el administrador puede editar o eliminar agendas */}
+          {rol === 'administrador' && (
+            <div className="mt-auto flex gap-2">
+              <button
+                onClick={editarAgenda}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-[#FDE28A] border border-amber-300 text-gray-800 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-300 transition-all cursor-pointer"
+              >
+                <MdIcons.MdEdit /> Editar
+              </button>
+              <button
+                onClick={eliminarAgenda}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-[#F2786D] border border-red-300 text-white py-1.5 rounded-lg text-xs font-semibold hover:bg-red-500 transition-all cursor-pointer"
+              >
+                <MdIcons.MdDelete /> Eliminar
+              </button>
+            </div>
+          )}
+
+          <div className={`${rol === 'administrador' ? 'mt-2' : 'mt-auto'} text-[10px] text-gray-400 font-light text-center italic border-t border-gray-100 pt-2`}>
             AmbiGest • Sistema de Control Institucional
           </div>
         </div>
@@ -378,8 +403,9 @@ function Agenda({ rol = 'administrador', usuario }) {
       {modalAbierto && (
         <ModalAgendarAmbiente
           ambienteInicial={filtroSeleccionado}
+          agendaInicial={agendaEnEdicion}
           onGuardar={guardarNuevaAsignacion}
-          onCancelar={() => setModalAbierto(false)}
+          onCancelar={() => { setModalAbierto(false); setAgendaEnEdicion(null); }}
         />
       )}
 

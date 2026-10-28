@@ -57,6 +57,8 @@ async function listar(idAmbiente = null) {
       programacion: propias.map((j) => ({
         jornada: j.nombre_jornada,
         horario: j.nombre_jornada === 'FDS' ? 'SAB-DOM' : `${hora12(j.hora_inicio)} a ${hora12(j.hora_fin)}`,
+        horaInicio: j.hora_inicio ? j.hora_inicio.slice(0, 5) : null, // 'HH:MM' (la jornada FDS no tiene horas fijas)
+        horaFin: j.hora_fin ? j.hora_fin.slice(0, 5) : null,
         // Mantenimiento manda sobre todo; si no, depende de si hay una ficha usándolo hoy
         estado: enMantenimiento ? 'Mantenimiento' : j.ocupado ? 'Ocupado' : 'Disponible',
       })),
