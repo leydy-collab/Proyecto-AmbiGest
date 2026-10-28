@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Comfortaa", sans-serif;
+  
+  /* Tus colores personalizados oficiales en Tailwind v4 */
+  --color-verde-oscuro: #2F9348;
+  --color-verde-claro: #90E49A;
+  --color-verde-medio: #75c97e;
+  --color-blanco-lino: #F2EADF;
+  --color-rojo-alerta: #F2786D;
+  --color-amarillo: #FDDE6D;
+  --color-gris-borde: #e7e9eb;
+}
