@@ -152,27 +152,28 @@ function Agenda({ rol = 'administrador', usuario }) {//usuario es un objeto que 
     return celdas;
   };
 
-  const nombreMes = new Date(anoActual, mesActual).toLocaleString('es-CO', { month: 'long' });
-  const matrizCeldas = obtenerDiasCalendario();
+  const nombreMes = new Date(anoActual, mesActual).toLocaleString('es-CO', { month: 'long' });//toma el mes actual y lo transforma en texto adaptado a la configuración regional colombiana
+  const matrizCeldas = obtenerDiasCalendario();// obtiene de el arreglo de los 42 dias de obtenerDiasCalendario
 
   // Para avisar cuando el mes que se está viendo no tiene agendas pero el ambiente sí tiene en otros meses
-  const agendasDelFiltro = listaAsignaciones.filter(coincideConFiltro);
-  const hayAgendasEnElMes = matrizCeldas.some((c) => c.esMesActual && c.horarios.length > 0);
-
-  const irAAgendaCercana = () => {
+  const agendasDelFiltro = listaAsignaciones.filter(coincideConFiltro);//sin importar de que mes sean selecciona las agendas no mas del filtro seleccionado
+  const hayAgendasEnElMes = matrizCeldas.some((c) => c.esMesActual && c.horarios.length > 0);//revisa si al menos existe un dia en el mes que tenga una agenda
+  //horarios es una propiedad del arreglo de objetos celdas
+  const irAAgendaCercana = () => {//para el boton de ir a mas cercana
     const inicioMes = `${anoActual}-${String(mesActual + 1).padStart(2, '0')}-01`;
     const ordenadas = [...agendasDelFiltro].sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio));
-    const proxima = ordenadas.find((a) => a.fechaInicio >= inicioMes);
-    const referencia = proxima ? proxima.fechaInicio : ordenadas[ordenadas.length - 1].fechaFin;
-    const [ano, mes] = referencia.split('-').map(Number);
+    //localCompare compara las fechas para saber cual es la mayor y devuelve un numero (-1, 0, 1), para asi organizar todas las agendas cronologicamente
+    const proxima = ordenadas.find((a) => a.fechaInicio >= inicioMes);//agenda posterior o igual al inicio del mes actual
+    const referencia = proxima ? proxima.fechaInicio : ordenadas[ordenadas.length - 1].fechaFin;//usa la proxima agenda y si no hay la ultima de las ordenas
+    const [ano, mes] = referencia.split('-').map(Number);//mapNumber convierte cada texto del arreglo en un numero
     setAnoActual(ano);
     setMesActual(mes - 1);
-    setDetalleSeleccionado(null);
+    setDetalleSeleccionado(null);//limpia el detalle que se estaba viendo al cambiar
   };
 
   const cambiarMes = (direccion) => {
     if (direccion === 'atras') {
-      if (mesActual === 0) { setMesActual(11); setAnoActual(prev => prev - 1); }
+      if (mesActual === 0) { setMesActual(11); setAnoActual(prev => prev - 1); }//prev toma lo que habia en añoActual
       else { setMesActual(prev => prev - 1); }
     } else {
       if (mesActual === 11) { setMesActual(0); setAnoActual(prev => prev + 1); }
@@ -181,25 +182,25 @@ function Agenda({ rol = 'administrador', usuario }) {//usuario es un objeto que 
     setDetalleSeleccionado(null);
   };
 
-  // Guarda en la BD (usa tu procedimiento sp_registrar_agenda). Si falla, devuelve el mensaje al modal.
-  const guardarNuevaAsignacion = async (datos) => {
+  // Guarda en la BD (usa sp_registrar_agenda). Si falla, devuelve el mensaje al modal.
+  const guardarNuevaAsignacion = async (datos) => {//datos es la informacion del formulario
     try {
       // Si hay una agenda en edición se actualiza; si no, se crea una nueva
-      if (agendaEnEdicion) await agendaApi.editar(agendaEnEdicion.id, datos);
-      else await agendaApi.crear(datos);
-      await cargar();
-      setModalAbierto(false);
-      setAgendaEnEdicion(null);
+      if (agendaEnEdicion) await agendaApi.editar(agendaEnEdicion.id, datos);//si es edicion se le pasa el id a editar y los datos nuevos
+      else await agendaApi.crear(datos);//sino llama a la api de crear agenda con el procedimeinto sp_Registrar_Agenda
+      await cargar();//vuelve a cargar todas las asignaciones
+      setModalAbierto(false);//cierra el formulario
+      setAgendaEnEdicion(null);//limpia la memoria de edicion
       // Lleva el calendario al mes donde empieza la agenda nueva, para que se vea de inmediato
       const [anoNuevo, mesNuevo] = datos.fechaInicio.split('-').map(Number);
-      setAnoActual(anoNuevo);
-      setMesActual(mesNuevo - 1);
-      setDetalleSeleccionado(null);
+      setAnoActual(anoNuevo);//año de la asignacion que se acaba de guardar
+      setMesActual(mesNuevo - 1);//tambien ubica el calendario en el mes que se aacaba de asignar
+      setDetalleSeleccionado(null);//cierra ventana de detalle
       if (rol === 'administrador') {
-        setFiltroSeleccionado(datos.ambienteId);
+        setFiltroSeleccionado(datos.ambienteId);//pone en el filtro al ambiente q se acaba de agendar
       }
     } catch (e) {
-      return e.message;
+      return e.message;//toma cualquier error y lo almacena en mensaje para mostrarlo
     }
   };
 
@@ -208,14 +209,14 @@ function Agenda({ rol = 'administrador', usuario }) {//usuario es un objeto que 
 
   // Abre el formulario con los datos de la agenda seleccionada
   const editarAgenda = () => {
-    setAgendaEnEdicion(detalleSeleccionado);
-    setModalAbierto(true);
+    setAgendaEnEdicion(detalleSeleccionado);//toma la agenda sobre la cual el usuario hizo click
+    setModalAbierto(true);//abre el formulario
   };
 
   // Elimina la agenda seleccionada (afecta TODO su rango de fechas, no solo el día que se tocó)
   const eliminarAgenda = async () => {
-    const a = detalleSeleccionado;
-    const confirmar = window.confirm(
+    const a = detalleSeleccionado;//copia el objeto de la agenda seleccionada para código más limpio
+    const confirmar = window.confirm(//ventana emergente de confirmación
       `¿Eliminar la agenda de la ficha ${a.ficha} en ${a.ambiente} (${a.jornada})?\n` +
       `Se eliminará del ${formatoFecha(a.fechaInicio)} al ${formatoFecha(a.fechaFin)}, no solo de este día.`
     );
