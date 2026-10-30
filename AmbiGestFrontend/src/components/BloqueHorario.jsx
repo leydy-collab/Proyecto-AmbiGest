@@ -1,13 +1,11 @@
 import React from 'react';
 
-// Tarjeta de UNA agenda dentro del día: número de ficha y, debajo, el horario.
-// Todas las agendas usan el mismo estilo: no hay un color distinto por agenda.
-export function BloqueHorario({ ficha, hora, onClick }) {
+export function BloqueHorario({ ficha, hora, onClick }) { // propiedades
   return (
     <div
       onClick={(e) => {
-        e.stopPropagation(); // Evita que el clic propague eventos indeseados
-        if (onClick) onClick();
+        e.stopPropagation(); // Evita que el clic propague eventos indeseados, o sea, solo activa el click en la tarjeta no en la celda del día
+        if (onClick) onClick(); //valida que la funcion OnClick fue enviada como prop antes de llamarla   
       }}
       className="text-[10px] p-1 rounded border border-verde-oscuro bg-white font-semibold flex flex-col items-center leading-tight shadow-xs cursor-pointer hover:bg-gray-50 transition-all"
     >
@@ -22,8 +20,8 @@ const MAX_TARJETAS = 3;
 
 // Cuadro del día completo (sirve igual para lunes a viernes que para sábado y domingo)
 export function CeldaDia({ numero, esMesActual = true, horarios = [], onSeleccionarTarjeta }) {
-  const visibles = horarios.slice(0, MAX_TARJETAS);
-  const ocultas = horarios.length - visibles.length;
+  const visibles = horarios.slice(0, MAX_TARJETAS); // toma los primeros 3 elementos del arreglo horarios
+  const ocultas = horarios.length - visibles.length; // para saber cuantas agendas quedan ocultas
 
   return (
     <div className={`min-h-[130px] border border-gray-100 bg-white p-1.5 flex flex-col gap-1 rounded transition-all hover:bg-[#74f8814b] hover:border-verde-oscuro ${

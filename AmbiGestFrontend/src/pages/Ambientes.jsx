@@ -65,7 +65,7 @@ function Ambientes() {
   const [editandoId, setEditandoId] = useState(null);
   const [errores, setErrores] = useState({});
 
-  // 1️⃣ NUEVO ESTADO: Para controlar el modal de Agendar Ambiente desde la tabla
+  // 1️ nuevo estado: Para controlar el modal de Agendar Ambiente desde la tabla
   const [modalAgendarAbierto, setModalAgendarAbierto] = useState(false);
   const [ambienteParaAgendar, setAmbienteParaAgendar] = useState('');
 
@@ -146,13 +146,13 @@ function Ambientes() {
     setModalAbierto(true);
   };
 
-  // 2️⃣ FUNCIÓN: Abrir modal de agendar con el ambiente de la fila
+  // 2️ Funcion: Abrir modal de agendar con el ambiente de la fila
   const abrirModalAgendar = (nombreAmbiente) => {
     setAmbienteParaAgendar(nombreAmbiente);
     setModalAgendarAbierto(true);
   };
 
-  // 3️⃣ FUNCIÓN: Procesar el guardado de la asignación de agendamiento
+  // 3 Funcion: Procesar el guardado de la asignación de agendamiento
   const manejarGuardarAgendamiento = async (datos) => {
     try {
       await agendaApi.crear(datos);

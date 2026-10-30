@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';//useRef sirve para guardar un valor que persiste toda la vida del componente
 import * as FiIcons from 'react-icons/fi';
 import * as BiIcons from 'react-icons/bi';
 import * as MdIcons from 'react-icons/md';
@@ -10,56 +10,58 @@ import { agendaApi, ambientesApi } from '../services/api';
 // Fecha local en texto 'AAAA-MM-DD' (sin desfase de zona horaria)
 const textoFecha = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+//funcion pura que toma un objeto de js (new Date()) y lo convierte en un texto plano estadar formato "AAAA-MM-DD asegurando que no haya problemas por zona horaria"
 
-function Agenda({ rol = 'administrador', usuario }) {
+function Agenda({ rol = 'administrador', usuario }) {//usuario es un objeto que trae todos los datos del usuario
   // Estado para el filtro: para 'administrador' es el Ambiente, para 'instructor' es la Ficha
   // Administrador: id del ambiente | Instructor: número de ficha (se llena al cargar los datos)
   const [filtroSeleccionado, setFiltroSeleccionado] = useState('');
 
-  const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);
+  const [detalleSeleccionado, setDetalleSeleccionado] = useState(null);//guarda el detalle de la tarjeta en la que hizo click el usuario para mostrarla en el panel derecho
   const [modalAbierto, setModalAbierto] = useState(false);
   const [agendaEnEdicion, setAgendaEnEdicion] = useState(null); // null = agendar una nueva
 
-  const [anoActual, setAnoActual] = useState(new Date().getFullYear());
+  const [anoActual, setAnoActual] = useState(new Date().getFullYear());//inicializa el año actual del sistema operativo
   const [mesActual, setMesActual] = useState(new Date().getMonth()); // 0 = Enero ... 11 = Diciembre
 
   // Agendas desde la base de datos
-  const [listaAsignaciones, setListaAsignaciones] = useState([]);
-  const [ambientes, setAmbientes] = useState([]);
-  const [errorCarga, setErrorCarga] = useState('');
+  const [listaAsignaciones, setListaAsignaciones] = useState([]);//toda la lista de asignaciones/agendas
+  const [ambientes, setAmbientes] = useState([]);//ambientes disponibles para llenar el menu desplegable del admin
+  const [errorCarga, setErrorCarga] = useState('');//captura cualquier mensaje de error
 
   const [cargado, setCargado] = useState(false); // ya terminó la primera carga desde la base de datos
-  const yaPosicionado = useRef(false);
+  const yaPosicionado = useRef(false);//posicionar la agenda una sola vez al cargar la pagina sin andar renderizando la pantalla
 
   // Al entrar por primera vez, elige una agenda para mostrar y lleva el calendario a su mes:
   // la que está vigente hoy; si no hay, la próxima; y si tampoco, la más reciente.
   // Así las agendas guardadas se ven sin tener que buscar el ambiente y el mes a mano.
-  const posicionarEnAgendaRelevante = (agendas) => {
+  const posicionarEnAgendaRelevante = (agendas) => {//agendas es la lista completa de asignaciones de la base de datos
     if (yaPosicionado.current || agendas.length === 0) return null;
     yaPosicionado.current = true;
     const hoy = textoFecha(new Date());
     const vigente = agendas.find((a) => a.fechaInicio <= hoy && hoy <= a.fechaFin);
     const proxima = agendas
       .filter((a) => a.fechaInicio > hoy)
-      .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio))[0];
+      .sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio))[0];//localCompare compara las siguientes agendas cronologicamnete de la mas cercana a la mas lejana
     const ultima = [...agendas].sort((a, b) => b.fechaFin.localeCompare(a.fechaFin))[0];
     const elegida = vigente ?? proxima ?? ultima;
     const referencia = vigente ? hoy : proxima ? proxima.fechaInicio : ultima.fechaFin;
     const [ano, mes] = referencia.split('-').map(Number);
     setAnoActual(ano);
-    setMesActual(mes - 1);
+    setMesActual(mes - 1);//-1 porque los meses en js van de 0 a 11
     return elegida;
   };
 
-  const cargar = async () => {
+  const cargar = async () => {//espera a q el servidor responda antes de continuar con el codigo
     try {
       if (rol === 'administrador') {
-        const [asignaciones, ambs] = await Promise.all([agendaApi.listar(), ambientesApi.listar()]);
-        setListaAsignaciones(asignaciones);
-        setAmbientes(ambs);
-        const elegida = posicionarEnAgendaRelevante(asignaciones);
-        const ambDeLaAgenda = elegida && ambs.find((a) => parseInt(a.id, 10) === parseInt(elegida.ambienteId, 10));
+        const [asignaciones, ambs] = await Promise.all([agendaApi.listar(), ambientesApi.listar()]);//promise all carga agendas y ambientes al mismo tiempo
+        setListaAsignaciones(asignaciones);//guarda la lista completa de agendas en el estado del componente
+        setAmbientes(ambs);//guarda la lista de ambientes disponibles para llenar el filtrado de ambientes
+        const elegida = posicionarEnAgendaRelevante(asignaciones);//usa el posicionamiento de la funcion anterior
+        const ambDeLaAgenda = elegida && ambs.find((a) => parseInt(a.id, 10) === parseInt(elegida.ambienteId, 10));//busca el ambiente de la agenda elegida
         setFiltroSeleccionado((actual) => actual || ambDeLaAgenda?.id || (ambs[0]?.id ?? ''));
+        //actual representa lo que ya hbaia en el filtro en ese momento, sino elige el ambiente de la agenda seleccionada sino el primer ambiente de la lista
       } else {
         // El instructor solo ve sus propias agendas
         const asignaciones = await agendaApi.listar(usuario?.id);
@@ -71,20 +73,22 @@ function Agenda({ rol = 'administrador', usuario }) {
     } catch (e) {
       setErrorCarga(e.message);
     }
-    setCargado(true);
+    setCargado(true);//independientemente de si cargo o fallo, esto avisa q el proceso se realizo, ya se para cargar los datos o quitar el spinner
   };
 
-  useEffect(() => { cargar(); }, [rol, usuario?.id]);
+  //use effect se usa para efectos secundarios: peticiones a la api o cargar datos cuando un cmponente aparece en pantalla
+  useEffect(() => { cargar(); }, [rol, usuario?.id]);//rol, le dice vuelve a ejecutar cargar() si el rol cambia
 
   // ¿Esta agenda corresponde al ambiente (administrador) o a la ficha (instructor) elegidos?
-  const coincideConFiltro = (asignacion) =>
+  //cuando el calendario va a dibujar las agendas pregunta a esta funcion si la agenda debe mostrarse o no segun lo que el usuario eligio en el filtro
+  const coincideConFiltro = (asignacion) =>//ya que solo se puede mostrar la agenda de un ambiente/ficha a la vez
     rol === 'administrador'
-      ? parseInt(asignacion.ambienteId, 10) === parseInt(filtroSeleccionado, 10)
-      : asignacion.ficha.trim() === String(filtroSeleccionado).trim();
+      ? parseInt(asignacion.ambienteId, 10) === parseInt(filtroSeleccionado, 10)//el calendario filtra solo las agendas
+      : asignacion.ficha.trim() === String(filtroSeleccionado).trim();//que le corresponden al usuario
 
-  // 🛠️ MOTOR DE FILTRADO SEGÚN EL ROL
+  // MOTOR DE FILTRADO SEGÚN EL ROL
   const obtenerHorariosParaFecha = (fechaTexto) => {
-    const horariosDelDia = [];
+    const horariosDelDia = [];//los horarios en cada casilla de día
 
     listaAsignaciones.forEach(asignacion => {
       // Si es Admin, filtra por coincidencia de AMBIENTE.
@@ -92,13 +96,13 @@ function Agenda({ rol = 'administrador', usuario }) {
       const coincideFiltro = coincideConFiltro(asignacion);
 
       const enRango = fechaTexto >= asignacion.fechaInicio && fechaTexto <= asignacion.fechaFin;
-
+      //comprueba que la casilla del día este dentro del rango de la agenda
       const [ano, mes, dia] = fechaTexto.split('-');
       const fechaObj = new Date(ano, mes - 1, dia);
       const diaSemana = fechaObj.getDay();
-
+                                    // verifica que aparte de q este en el rango de fechas, diaSemana se encuentre en el arrglo de los dias de la agenda
       if (coincideFiltro && enRango && asignacion.diasSemana.includes(diaSemana)) {
-        horariosDelDia.push(asignacion);
+        horariosDelDia.push(asignacion);//si la asignacion pasa los filtros se añade a, arreglo del dia
       }
     });
 
@@ -108,14 +112,15 @@ function Agenda({ rol = 'administrador', usuario }) {
 
   // Generador de grilla del calendario
   const obtenerDiasCalendario = () => {
+    //objetos de fecha
     const primerDiaMes = new Date(anoActual, mesActual, 1);
-    const ultimoDiaMes = new Date(anoActual, mesActual + 1, 0);
-    const totalDias = ultimoDiaMes.getDate();
+    const ultimoDiaMes = new Date(anoActual, mesActual + 1, 0);//truco que retrocede al ultimo día del mes actual, pero es un objeto fecha
+    const totalDias = ultimoDiaMes.getDate();//aqui extra de ese objeto el numero total de dias
 
-    let diaSemanaInicial = primerDiaMes.getDay();
-    diaSemanaInicial = diaSemanaInicial === 0 ? 6 : diaSemanaInicial - 1;
+    let diaSemanaInicial = primerDiaMes.getDay();//para las columnas del calendario
+    diaSemanaInicial = diaSemanaInicial === 0 ? 6 : diaSemanaInicial - 1;//reordena los dias de la semana, en el sena el primer dia no seria domingo sino lunes
 
-    const celdas = [];
+    const celdas = [];//arreglo de las 42 casillas del calendario
 
     // Mes anterior
     const ultimoDiaMesAnterior = new Date(anoActual, mesActual, 0).getDate();
@@ -126,7 +131,7 @@ function Agenda({ rol = 'administrador', usuario }) {
 
     // Mes actual
     for (let d = 1; d <= totalDias; d++) {
-      const mesFormateado = String(mesActual + 1).padStart(2, '0');
+      const mesFormateado = String(mesActual + 1).padStart(2, '0');//transforma los meses para ya no inicien en 0 sumando 1, y los convierte a texto de minimo 2 caracteres rellenando si es el caso con 0
       const diaFormateado = String(d).padStart(2, '0');
       const fechaTexto = `${anoActual}-${mesFormateado}-${diaFormateado}`;
 
@@ -392,10 +397,6 @@ function Agenda({ rol = 'administrador', usuario }) {
               </button>
             </div>
           )}
-
-          <div className={`${rol === 'administrador' ? 'mt-2' : 'mt-auto'} text-[10px] text-gray-400 font-light text-center italic border-t border-gray-100 pt-2`}>
-            AmbiGest • Sistema de Control Institucional
-          </div>
         </div>
       )}
 
