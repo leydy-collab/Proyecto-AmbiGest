@@ -10,7 +10,7 @@ import catalogosRoutes from './routes/catalogos.js';
 import fichasRoutes from './routes/fichas.js';
 import instructoresRoutes from './routes/instructores.js';
 import novedadesRoutes from './routes/novedades.js';
-
+import inicioRouter from './routes/inicio.js';
 
 
 
@@ -27,6 +27,7 @@ app.use('/api/catalogos', catalogosRoutes);
 app.use('/api/fichas', fichasRoutes);
 app.use('/api/instructores', instructoresRoutes);
 app.use('/api/novedades', novedadesRoutes);
+app.use('/api/inicio', inicioRouter);
 
 app.get('/', (req, res) => {
   res.send('¡Backend de Ambigest funcionando correctamente!');

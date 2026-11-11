@@ -62,6 +62,8 @@ export const agendaApi = {
   listar: (instructorId) => request(`/agenda${instructorId ? `?instructor=${instructorId}` : ''}`),
   //si se le pasa un id de instructor muestra las agendas de solo ese instructor, sino se le pasa nada se ven todas (admin)
   crear: (d) => request('/agenda', enviar('POST', d)),
+  editar: (id, d) => request(`/agenda/${id}`, enviar('PUT', d)),//PUT /api/agenda/:id con los datos nuevos
+  eliminar: (id) => request(`/agenda/${id}`, { method: 'DELETE' }),//DELETE /api/agenda/:id
 };
 
 export const novedadesApi = {
@@ -75,4 +77,8 @@ export const catalogosApi = {
   categorias: () => request('/catalogos/categorias'),
   edificios: () => request('/catalogos/edificios'),
   jornadas: () => request('/catalogos/jornadas'),
+};
+
+export const inicioApi = {
+  resumen: (instructorId) => request(`/inicio${instructorId ? `?instructor=${instructorId}` : ''}`),
 };
