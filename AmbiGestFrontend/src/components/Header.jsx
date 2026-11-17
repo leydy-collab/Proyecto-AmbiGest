@@ -1,10 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as IoIcons from 'react-icons/io';
 import * as FiIcons from 'react-icons/fi';
 import logo from '../assets/logo.png';
 
 // recibir propiedades de control
-const Header = ({ onLogout, sidebarColapsado, setSidebarColapsado }) => {
+const Header = ({ onLogout, sidebarColapsado, setSidebarColapsado, rol, pendientes = 0 }) => {
+  const navigate = useNavigate();
+  // Solo el administrador ve el contador de novedades pendientes en la campana
+  const hayPendientes = rol === 'administrador' && pendientes > 0;
+
   return (
     <header className="w-full h-14 bg-white border-b border-gray-200 flex justify-between items-center px-6">
       
@@ -26,12 +31,21 @@ const Header = ({ onLogout, sidebarColapsado, setSidebarColapsado }) => {
           Ambi<span className="text-verde-oscuro">Gest</span>
         </span>
       </button>
-
+      
       {/* notificaciones y cerrar sesión*/}
       <div className="flex items-center gap-6">
-        <button className="relative p-2 text-gray-500 hover:text-verde-oscuro rounded-full hover:bg-gray-100 transition-all duration-200 cursor-pointer">
+        {/* campana: al hacer clic lleva a Novedades; el número rojo = novedades pendientes de atender */}
+        <button
+          onClick={() => navigate('/novedades')}
+          title={hayPendientes ? `${pendientes} novedad(es) pendiente(s)` : 'Novedades'}
+          className="relative p-2 text-gray-500 hover:text-verde-oscuro rounded-full hover:bg-gray-100 transition-all duration-200 cursor-pointer"
+        >
           <IoIcons.IoMdNotifications className="text-2xl" />
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rojo-alerta rounded-full border-2 border-white"></span>
+          {hayPendientes && (
+            <span className="absolute top-0 right-0 min-w-[18px] h-[18px] px-1 bg-rojo-alerta text-white text-[10px] font-bold rounded-full border-2 border-white flex items-center justify-center">
+              {pendientes > 99 ? '99+' : pendientes}
+            </span>
+          )}
         </button>
 
         <button onClick={onLogout} className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-rojo-alerta border border-transparent hover:border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer">

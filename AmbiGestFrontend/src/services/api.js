@@ -69,6 +69,12 @@ export const agendaApi = {
 export const novedadesApi = {
   listar: (instructorId) => request(`/novedades${instructorId ? `?instructor=${instructorId}` : ''}`),
   crear: (d) => request('/novedades', enviar('POST', d)),
+  //cuántas novedades están pendientes y cuál fue la última (la campana y el aviso del administrador)
+  resumen: () => request('/novedades/resumen'),
+  //ambientes donde el instructor tiene agenda vigente hoy (los únicos donde puede reportar)
+  misAmbientes: (instructorId) => request(`/novedades/mis-ambientes?instructor=${instructorId}`),
+  //el administrador cambia el estado: 'Pendiente' | 'En proceso' | 'Resuelto'
+  cambiarEstado: (id, estado) => request(`/novedades/${id}/estado`, enviar('PUT', { estado })),
 };
 
 //conjunto de peticiones GET (lectura) para llenar los menus desplegables estaticos del sistema
