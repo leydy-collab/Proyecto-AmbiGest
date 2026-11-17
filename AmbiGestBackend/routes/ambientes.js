@@ -26,13 +26,8 @@ async function listar(idAmbiente = null) {
   );
 
   // CONSULTA 2: jornadas habilitadas de cada ambiente (tabla jornada_ambiente) con su horario.
-  // EXISTS(...) devuelve 1 si HOY hay una agenda de ese ambiente en esa jornada -> la jornada está "Ocupado".
   const [jorns] = await db.query(
-    `SELECT ja.ambiente_id, j.id_jornada, j.nombre_jornada, j.hora_inicio, j.hora_fin,
-            EXISTS (SELECT 1 FROM agendas ag
-                     WHERE ag.ambiente_id = ja.ambiente_id
-                       AND ag.jornada_id = j.id_jornada
-                       AND CURDATE() BETWEEN ag.fecha_inicio AND ag.fecha_fin) AS ocupado
+    `SELECT ja.ambiente_id, j.id_jornada, j.nombre_jornada, j.hora_inicio, j.hora_fin
        FROM jornada_ambiente ja
        JOIN jornadas j ON j.id_jornada = ja.jornada_id
       ORDER BY j.id_jornada`
@@ -41,7 +36,6 @@ async function listar(idAmbiente = null) {
   // Une los resultados de las dos consultas (cada ambiente con sus jornadas)
   return ambs.map((a) => {
     const propias = jorns.filter((j) => j.ambiente_id === a.id_ambiente);
-    const enMantenimiento = a.estado_ambiente === 'Mantenimiento';
     return {
       id: pad3(a.id_ambiente),
       codigo: pad3(a.id_ambiente),
@@ -52,15 +46,13 @@ async function listar(idAmbiente = null) {
       categoriaId: a.categoria_id,
       categoria: a.nombre_categoria || '',
       capacidad: String(a.capacidad_max),
-      estado: a.estado_ambiente, // 'Activo' o 'Mantenimiento'
+      estado: a.estado_ambiente, // estado del ambiente en la BD: 'Activo', 'Mantenimiento' o 'Inactivo'
       jornadaIds: propias.map((j) => j.id_jornada),
       programacion: propias.map((j) => ({
         jornada: j.nombre_jornada,
         horario: j.nombre_jornada === 'FDS' ? 'SAB-DOM' : `${hora12(j.hora_inicio)} a ${hora12(j.hora_fin)}`,
         horaInicio: j.hora_inicio ? j.hora_inicio.slice(0, 5) : null, // 'HH:MM' (la jornada FDS no tiene horas fijas)
         horaFin: j.hora_fin ? j.hora_fin.slice(0, 5) : null,
-        // Mantenimiento manda sobre todo; si no, depende de si hay una ficha usándolo hoy
-        estado: enMantenimiento ? 'Mantenimiento' : j.ocupado ? 'Ocupado' : 'Disponible',
       })),
     };
   });

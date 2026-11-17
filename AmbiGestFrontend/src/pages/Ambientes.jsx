@@ -5,6 +5,13 @@ import ModalAgendarAmbiente from '../components/ModalAgendarAmbiente';
 import ErrorCarga from '../components/ErrorCarga';
 import { ambientesApi, agendaApi, catalogosApi } from '../services/api';
 
+// Color de la etiqueta según el estado del ambiente en la base de datos
+const estilosEstado = {
+  Activo: 'bg-verde-claro border-verde-oscuro text-green-900',
+  Mantenimiento: 'bg-amber-200 border-amber-500 text-amber-900',
+  Inactivo: 'bg-gray-200 border-gray-400 text-gray-700',
+};
+
 const inputBase =
   'bg-[#EAE5DE] border rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-green-600';
 
@@ -157,7 +164,6 @@ function Ambientes() {
     try {
       await agendaApi.crear(datos);
       setModalAgendarAbierto(false);
-      await cargar(); // refresca Ocupado/Disponible
     } catch (e) {
       return e.message; // el modal lo muestra
     }
@@ -234,14 +240,14 @@ function Ambientes() {
             <thead className="bg-verde-claro border-b border-gray-200 text-gray-800">
               <tr>
                 <th className="px-4 py-4 font-normal text-center w-14 border-x border-gray-200">ID</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-200">Nombre</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-200">Ubicación</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-200">Categoría</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-200">Capacidad</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-200">Jornada</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-200">Horario</th>
-                <th className="px-6 py-4 font-normal text-center border-r border-gray-200 w-34">Estado</th>
-                <th className="px-6 py-4 font-normal text-center w-36">Acciones</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-200">Nombre</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-200">Ubicación</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-200">Categoría</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-200">Capacidad</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-200">Jornada</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-200">Horario</th>
+                <th className="px-4 py-4 font-normal text-center border-r border-gray-200 w-34">Estado</th>
+                <th className="px-4 py-4 font-normal text-center w-36">Acciones</th>
               </tr>
             </thead>
 
@@ -249,7 +255,7 @@ function Ambientes() {
               {listaAmbientes.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="text-center py-8 text-gray-500">
-                    No hay ambientes registrados en el sistema.
+                    No hay ambientes registrados en el sistema.{/*colSpan define cuantas columnas va a ocupar esta unica celda*/}
                   </td>
                 </tr>
               ) : (
@@ -284,22 +290,12 @@ function Ambientes() {
                         ))}
                       </div>
                     </td>
-                    <td className="px-5 py-2 border-r border-gray-100">
-                      <div className="flex flex-col gap-2 py-1 items-center justify-center">
-                        {amb.programacion?.map((prog, idx) => (
-                          <div key={idx} className="h-6 flex items-center justify-center w-full">
-                            <span className={`w-28 text-center py-0.5 text-[11px] font-semibold rounded border uppercase tracking-wider ${
-                              prog.estado === 'Disponible'
-                                ? 'bg-verde-claro border-verde-oscuro text-green-900'
-                                : prog.estado === 'Mantenimiento'
-                                  ? 'bg-amber-200 border-amber-500 text-amber-900'
-                                  : 'bg-rojo-alerta/80 border-red-700 text-red-950'
-                            }`}>
-                              {prog.estado}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                    <td className="px-5 py-4 border-r border-gray-100 text-center">
+                      <span className={`inline-block w-28 text-center py-0.5 text-[10px] font-semibold rounded border uppercase tracking-wider ${
+                        estilosEstado[amb.estado] || 'bg-gray-100 border-gray-300 text-gray-700'
+                      }`}>
+                        {amb.estado}
+                      </span>
                     </td>
 
                     {/* Bloque de Acciones */}

@@ -101,14 +101,14 @@ function Instructores() {
           <table className="w-full border-collapse text-left text-sm text-gray-700">
             <thead className="bg-verde-claro border-b border-gray-300 text-gray-800">
               <tr>
-                <th className="px-6 py-4 font-normal text-center w-16 border-x border-gray-100">ID</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-100">Nombre</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-100">Documento</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-100">Área</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-100">Red de conoc.</th>
-                <th className="px-6 py-4 font-normal border-r border-gray-100">Correo</th>
-                <th className="px-6 py-4 font-normal text-center border-r border-gray-100">Estado</th>
-                <th className="px-6 py-4 font-normal text-center w-28"></th>
+                <th className="px-4 py-4 font-normal text-center w-14 border-x border-gray-100">ID</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-100">Nombre</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-100">Documento</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-100">Área</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-100">Red</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-100">Correo</th>
+                <th className="px-4 py-4 font-normal text-center border-r border-gray-100">Estado</th>
+                <th className="px-4 py-4 font-normal text-center w-28">Acciones</th>
               </tr>
             </thead>
 

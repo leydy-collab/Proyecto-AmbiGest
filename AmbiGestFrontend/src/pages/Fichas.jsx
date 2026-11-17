@@ -166,15 +166,15 @@ function Fichas() {
           <table className="w-full border-collapse text-left text-sm text-gray-700">
             <thead className="bg-verde-claro border-b border-gray-200 text-gray-800">
               <tr>
-                <th className="px-4 py-3 font-normal text-center w-14 border-x border-gray-100">ID</th>
-                <th className="px-4 py-3 font-normal border-r border-gray-100">Ficha</th>
-                <th className="px-4 py-3 font-normal w-16 border-r border-gray-100">Nivel</th>
-                <th className="px-4 py-3 font-normal max-w-[200px] border-r border-gray-100">Programa</th>
-                <th className="px-4 py-3 font-normal border-r border-gray-100">Instructor líder</th>
-                <th className="px-4 py-3 font-normal border-r border-gray-100">Fin lectiva</th>
-                <th className="px-4 py-3 font-normal border-r border-gray-100">Coordinación</th>
-                <th className="px-4 py-3 font-normal text-center w-24 border-r border-gray-100">Aprendices</th>
-                <th className="px-4 py-3 font-normal text-center w-28"></th>
+                <th className="px-4 py-4 font-normal text-center w-14 border-x border-gray-100">ID</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-100">Ficha</th>
+                <th className="px-4 py-4 font-normal w-16 border-r border-gray-100">Nivel</th>
+                <th className="px-4 py-4 font-normal max-w-[200px] border-r border-gray-100">Programa</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-100">Instructor líder</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-100">Fin lectiva</th>
+                <th className="px-4 py-4 font-normal border-r border-gray-100">Coordinación</th>
+                <th className="px-4 py-4 font-normal text-center w-24 border-r border-gray-100">Aprendices</th>
+                <th className="px-4 py-4 font-normal text-center w-28">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
