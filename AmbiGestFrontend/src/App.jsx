@@ -27,6 +27,7 @@ function App() {
   // Login.jsx llama a onLoginSuccess(rol, usuario): ahora SÍ se guarda el usuario (antes se descartaba),
   // porque el instructor lo necesita para registrar novedades y ver su propia agenda
   const handleLoginSuccess = (rolAsignado, usuarioLogueado) => {
+    window.history.replaceState(null, '', '/'); // siempre empieza en Inicio
     setRol(rolAsignado);
     setUsuario(usuarioLogueado);
     setIsLoggedIn(true);
@@ -61,7 +62,7 @@ return (
           <Route path="/ambientes" element={rol === 'administrador' ? <Ambientes /> : <Inicio rol={rol} usuario={usuario} />} />
           <Route path="/instructores" element={rol === 'administrador' ? <Instructores /> : <Inicio rol={rol} usuario={usuario} />} />
           <Route path="/fichas" element={rol === 'administrador' ? <Fichas /> : <Inicio rol={rol} usuario={usuario} />} />
-          <Route path="/agenda" element={<Agenda rol={rol} usuario={usuario} />} />
+          <Route path="/agenda" element={<Agenda rol={rol} usuario={usuario} onColapsarMenu={() => setSidebarColapsado(true)} />} />
           <Route path="/novedades" element={<Novedades rol={rol} usuario={usuario} onCambio={refrescar} />} />
         </Routes>
       </div>

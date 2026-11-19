@@ -12,7 +12,7 @@ const textoFecha = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 //funcion pura que toma un objeto de js (new Date()) y lo convierte en un texto plano estadar formato "AAAA-MM-DD asegurando que no haya problemas por zona horaria"
 
-function Agenda({ rol = 'administrador', usuario }) {//usuario es un objeto que trae todos los datos del usuario
+function Agenda({ rol = 'administrador', usuario, onColapsarMenu }) {//usuario es un objeto que trae todos los datos del usuario
   // Estado para el filtro: para 'administrador' es el Ambiente, para 'instructor' es la Ficha
   // Administrador: id del ambiente | Instructor: número de ficha (se llena al cargar los datos)
   const [filtroSeleccionado, setFiltroSeleccionado] = useState('');
@@ -329,7 +329,10 @@ function Agenda({ rol = 'administrador', usuario }) {//usuario es un objeto que 
                 numero={celda.numero} 
                 esMesActual={celda.esMesActual} 
                 horarios={celda.horarios || []} 
-                onSeleccionarTarjeta={(tarjeta) => setDetalleSeleccionado({ ...tarjeta, dia: celda.numero, mesText: nombreMes })}
+                onSeleccionarTarjeta={(tarjeta) => {
+                  setDetalleSeleccionado({ ...tarjeta, dia: celda.numero, mesText: nombreMes });
+                  onColapsarMenu?.(); // oculta el menú lateral al abrir el detalle
+                }}
               />
             ))}
           </div>
